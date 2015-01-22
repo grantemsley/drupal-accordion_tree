@@ -1,0 +1,6 @@
+name = Accordion Tree
+description = Defines hierarchical text and header field types.
+package = Fields
+core = 7.x
+dependencies[] = field
+dependencies[] = text
