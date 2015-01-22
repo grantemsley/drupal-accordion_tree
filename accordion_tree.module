@@ -12,7 +12,7 @@
 function accordion_tree_field_info() {
   return array(
     'accordion_tree' => array(
-      'label' => t('Hierarchical text'),
+      'label' => t('Accordion tree'),
       'description' => t('This field stores long text along with a header'),
       'instance_settings' => array('text_processing' => 1),
       'default_widget' => 'accordion_tree_textfield',
@@ -28,18 +28,6 @@ function accordion_tree_field_info() {
 function accordion_tree_field_settings_form($field, $instance, $has_data) {
   $settings = $field['settings'];
   $form = array();
-  if ('accordion_tree' == $field['type']) {
-    $form['max_length'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Maximum length'),
-      '#default_value' => $settings['max_length'],
-      '#required' => TRUE,
-      '#description' => t('The maximum length of the field in characters.'),
-      '#element_validate' => array('element_validate_integer_positive'),
-      '#disabled' => $has_data,
-    );
-  }
-
   return $form;
 }
 
@@ -58,14 +46,6 @@ function accordion_tree_field_instance_settings_form($field, $instance) {
       t('Filtered text (user selects text format)'),
     ),
   );
-  if ('accordion_tree_with_summary' == $field['type']) {
-    $form['display_summary'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Summary input'),
-      '#default_value' => $settings['display_summary'],
-      '#description' => t('This allows authors to input an explicit summary, to be displayed instead of the automatically trimmed text when using the "Summary or trimmed" display type.'),
-    );
-  }
 
   return $form;
 }
@@ -78,8 +58,6 @@ function accordion_tree_form_field_ui_field_edit_form_alter(&$form, &$form_state
   if ('field_ui_field_edit_form' == $form_id) {
     $types = array(
       'accordion_tree',
-      'accordion_tree_long',
-      'accordion_tree_with_summary',
     );
     if (in_array($form['#field']['type'], $types)) {
       $form['field']['cardinality']['#default_value'] = FIELD_CARDINALITY_UNLIMITED;
@@ -105,9 +83,6 @@ function accordion_tree_field_load($entity_type, $entities, $field, $instances, 
     foreach ($items[$id] as $delta => $item) {
       if (empty($instances[$id]['settings']['text_processing']) || filter_format_allowcache($item['format'])) {
         $items[$id][$delta]['safe_value'] = isset($item['value']) ? _text_sanitize($instances[$id], $langcode, $item, 'value') : '';
-        if ($field['type'] == 'accordion_tree_with_summary') {
-          $items[$id][$delta]['safe_summary'] = isset($item['summary']) ? _text_sanitize($instances[$id], $langcode, $item, 'summary') : '';
-        }
       }
     }
   }
@@ -128,8 +103,6 @@ function accordion_tree_field_is_empty($item) {
 function accordion_tree_field_formatter_info() {
   $types = array(
     'accordion_tree',
-    'accordion_tree_long',
-    'accordion_tree_with_summary',
   );
   return array(
     'accordion_tree_default' => array(
@@ -139,16 +112,6 @@ function accordion_tree_field_formatter_info() {
     'accordion_tree_plain' => array(
       'label' => t('Plain text'),
       'field types' => $types,
-    ),
-    'accordion_tree_trimmed' => array(
-      'label' => t('Trimmed'),
-      'field types' => $types,
-      'settings' => array('trim_length' => 600),
-    ),
-    'accordion_tree_summary_or_trimmed' => array(
-      'label' => t('Summary or trimmed'),
-      'field types' => array('accordion_tree_with_summary'),
-      'settings' => array('trim_length' => 600),
     ),
   );
 }
@@ -249,19 +212,9 @@ function accordion_tree_field_formatter_view($entity_type, $entity, $field, $ins
 function accordion_tree_field_widget_info() {
   return array(
     'accordion_tree_textfield' => array(
-      'label' => t('Text field'),
+      'label' => t('Header and rich text area'),
       'field types' => array('accordion_tree'),
-      'settings' => array('size' => 60),
-    ),
-    'accordion_tree_textarea' => array(
-      'label' => t('Text area (multiple rows)'),
-      'field types' => array('accordion_tree_long'),
       'settings' => array('rows' => 5),
-    ),
-    'accordion_tree_textarea_with_summary' => array(
-      'label' => t('Text area with a summary'),
-      'field types' => array('accordion_tree_with_summary'),
-      'settings' => array('rows' => 20, 'summary_rows' => 5),
     ),
   );
 }
@@ -273,24 +226,13 @@ function accordion_tree_field_widget_info() {
 function accordion_tree_field_widget_settings_form($field, $instance) {
   $widget = $instance['widget'];
   $settings = $widget['settings'];
-  if ('accordion_tree_textfield' == $widget['type']) {
-    $form['size'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Size of textfield'),
-      '#default_value' => $settings['size'],
-      '#required' => TRUE,
-      '#element_validate' => array('element_validate_integer_positive'),
-    );
-  }
-  else {
-    $form['rows'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Rows'),
-      '#default_value' => $settings['rows'],
-      '#required' => TRUE,
-      '#element_validate' => array('element_validate_integer_positive'),
-    );
-  }
+  $form['rows'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Rows'),
+    '#default_value' => $settings['rows'],
+    '#required' => TRUE,
+    '#element_validate' => array('element_validate_integer_positive'),
+  );
 
   return $form;
 }
@@ -300,45 +242,41 @@ function accordion_tree_field_widget_settings_form($field, $instance) {
  * Implements hook_field_widget_form().
  */
 function accordion_tree_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  $element['header'] = array(
+    '#type' => 'textfield',
+    '#default_value' => isset($items[$delta]['header'])? $items[$delta]['header'] : NULL,
+    '#size' => 80,
+    '#maxlength' => 255,
+    '#attributes' => array('class' => array('text-full')),
+  );
+  
+  $element['value'] = array(
+    '#type' => 'textarea',
+    '#default_value' => isset($items[$delta]['value']) ? $items[$delta]['value'] : NULL,
+    '#rows' => $instance['widget']['settings']['rows'],
+    '#attributes' => array('class' => array('text-full')),
+  );
+  return $element;
+
+
   $summary_widget = array();
   $main_widget = array();
-  switch ($instance['widget']['type']) {
-    case 'accordion_tree_textfield':
-      $main_widget = $element + array(
-        '#type' => 'textfield',
-        '#default_value' => isset($items[$delta]['value']) ? $items[$delta]['value'] : NULL,
-        '#size' => $instance['widget']['settings']['size'],
-        '#maxlength' => $field['settings']['max_length'],
-        '#attributes' => array('class' => array('text-full')),
-      );
-      break;
-
-    case 'accordion_tree_textarea_with_summary':
-      $display = !empty($items[$delta]['summary']) || !empty($instance['settings']['display_summary']);
-      $summary_widget = array(
-        '#type' => $display ? 'textarea' : 'value',
-        '#default_value' => isset($items[$delta]['summary']) ? $items[$delta]['summary'] : NULL,
-        '#title' => t('Summary'),
-        '#rows' => $instance['widget']['settings']['summary_rows'],
-        '#description' => t('Leave blank to use trimmed value of full text as the summary.'),
-        '#attached' => array(
-          'js' => array(drupal_get_path('module', 'text') . '/text.js'),
-        ),
-        '#attributes' => array('class' => array('text-summary')),
-        '#prefix' => '<div class="text-summary-wrapper">',
-        '#suffix' => '</div>',
-        '#weight' => -10,
-      );
-
-    case 'accordion_tree_textarea':
-      $main_widget = $element + array(
-        '#type' => 'textarea',
-        '#default_value' => isset($items[$delta]['value']) ? $items[$delta]['value'] : NULL,
-        '#rows' => $instance['widget']['settings']['rows'],
-        '#attributes' => array('class' => array('text-full')),
-      );
-      break;
-  }
+  $main_widget = $element + array(
+    '#type' => 'textarea',
+    '#default_value' => isset($items[$delta]['value']) ? $items[$delta]['value'] : NULL,
+    '#rows' => $instance['widget']['settings']['rows'],
+    '#attributes' => array('class' => array('text-full')),
+  );
+  
+  $header_widget = $element + array(
+    '#type' => 'textfield',
+    '#default_value' => isset($items[$delta]['header'])? $items[$delta]['header'] : NULL,
+    '#size' => 60,
+    '#maxlength' => 255,
+    '#attributes' => array('class' => array('text-full')),
+  );
+  
+  $element['header'] = $header_widget;
 
   if ($main_widget) {
     if ($instance['settings']['text_processing']) {
@@ -351,10 +289,6 @@ function accordion_tree_field_widget_form(&$form, &$form_state, $field, $instanc
       $element['value'] = $main_widget;
     }
   }
-  if ($summary_widget) {
-    $element['summary'] = $summary_widget;
-  }
-
   return $element;
 }
 
@@ -376,8 +310,6 @@ function _accordion_tree_field_invoke($op, $entity_type, $entity, &$form, &$form
   $function = '_accordion_tree_field_' . $op;
   $types = array(
     'accordion_tree',
-    'accordion_tree_long',
-    'accordion_tree_with_summary',
   );
   foreach ($instances as $instance) {
     $field_name = $instance['field_name'];
@@ -536,7 +468,7 @@ function theme_accordion_tree($vars) {
     }
     $weight = drupal_render($item['_weight']);
     $cells = array(
-      theme('indentation', array('size' => $depth)) . '<div class="text-hierarchical-form-item">' . drupal_render($item) . '</div>',
+      theme('indentation', array('size' => $depth)) . '<div class="accordion-tree-form-item">' . drupal_render($item) . '</div>',
       $weight,
     );
     $rows[] = array(

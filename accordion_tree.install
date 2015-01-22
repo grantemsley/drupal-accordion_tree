@@ -17,11 +17,20 @@ function accordion_tree_field_schema($field) {
     ),
     'header' => array(
       'type' => 'varchar',
-      'size' => '255',
+      'length' => '255',
+      'not null' => FALSE,
+    ),
+    'format' => array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+    ),
+    'parent' => array(
+      'type' => 'int',
+      'unsigned' => TRUE,
       'not null' => FALSE,
     ),
   );
-
   return array(
     'columns' => $columns,
     'indexes' => array(
