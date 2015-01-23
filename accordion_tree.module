@@ -138,13 +138,15 @@ function accordion_tree_field_formatter_settings_summary($field, $instance, $vie
  */
 function accordion_tree_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
-    firep($items);
   foreach ($items as $delta => $item) {
     $outputbody = _text_sanitize($instance, $langcode, $item, 'value');
+    $outputbody = $item['value'];  // Temporarily override the text_sanitization until I figure out why it doesn't work properly!
     $outputheader = _text_sanitize($instance, $langcode, $item, 'header');
     
-    $element[$delta] = array('#header' => $outputheader);
-    $element[$delta] = array('#markup' => $outputbody);
+    $element[$delta] = array(
+      '#header' => $outputheader,
+      '#markup' => $outputbody,
+    );
   }
   
   $tree = array();
@@ -162,7 +164,7 @@ function accordion_tree_field_formatter_view($entity_type, $entity, $field, $ins
       $depths[$delta] = ++$depth;
     }
     $refs[$parent][] = array(
-      'data' => '<div class="field-value field-value-' . ($delta + 1) . '">' . $item['#markup'] . '</div>',
+      'data' => '<div class="field-value field-value-' . ($delta + 1) . '">' . '<h3>' . $item['#header'] . '</h3>'. $item['#markup'] . '</div>',
       'children' => array(),
       'class' => array('depth depth-' . $depth),
     );
@@ -181,7 +183,7 @@ function accordion_tree_field_formatter_view($entity_type, $entity, $field, $ins
   else {
     $result = FALSE;
   }
-
+  firep($result);
   return $result;
 }
 
