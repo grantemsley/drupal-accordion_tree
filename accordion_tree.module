@@ -198,6 +198,10 @@ function theme_nested_accordion($vars) {
   $output = '';
   $items = $vars['items'];
   $attributes = $vars['attributes'];
+  
+  drupal_add_css(drupal_get_path('module', 'accordion_tree') . '/accordion_tree.css');
+  drupal_add_js(drupal_get_path('module', 'accordion_tree') . '/accordion_tree_display.js');
+  drupal_add_js(drupal_get_path('module', 'accordion_tree') . '/jquery.nestedAccordion.js');
 
   if (!empty($items)) {
     $output .= '<ul' . drupal_attributes($attributes) . '>';
