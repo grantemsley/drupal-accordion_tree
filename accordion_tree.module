@@ -92,7 +92,7 @@ function accordion_tree_field_load($entity_type, $entities, $field, $instances, 
 /**
  * Implements hook_field_is_empty().
  */
-function accordion_tree_field_is_empty($item) {
+function accordion_tree_field_is_empty($item, $field) {
   return text_field_is_empty($item, NULL);
 }
 
@@ -137,16 +137,13 @@ function accordion_tree_field_formatter_settings_summary($field, $instance, $vie
  * Implements hook_field_formatter_view().
  */
 function accordion_tree_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
-firep($instance);
   $element = array();
   foreach ($items as $delta => $item) {
     $outputbody = _text_sanitize($instance, $langcode, $item, 'value');
-    firep($item);
     //$outputbody = $item['value'];  // Temporarily override the text_sanitization until I figure out why it doesn't work properly!
     //$outputheader = $item['header'];
     $outputheader = _text_sanitize($instance, $langcode, $item, 'header');
     
-    firep('<pre>' . $outputheader . '</pre>');
     
     $element[$delta] = array(
       '#header' => $outputheader,
@@ -198,8 +195,6 @@ firep($instance);
  */
 
 function theme_nested_accordion($vars) {
-  firep($vars);
-  firep('<hr>');
   $output = '';
   $items = $vars['items'];
   $attributes = $vars['attributes'];
@@ -221,7 +216,6 @@ function theme_nested_accordion($vars) {
           } elseif ($key == 'body') {
             $body = $value;
           } elseif ($key == 'children') {
-            firep("PREPARING RECURSION!");
             $children = $value;
           } else {
             $attributes[$key] = $value;
@@ -304,13 +298,34 @@ function accordion_tree_field_widget_form(&$form, &$form_state, $field, $instanc
   
   $element['value'] = array(
     '#title' => 'Item Body',
-    '#type' => 'textarea',
+    '#type' => 'text_format',
+    '#base_type' => 'textarea',
     '#default_value' => isset($items[$delta]['value']) ? $items[$delta]['value'] : NULL,
     '#rows' => $instance['widget']['settings']['rows'],
     '#attributes' => array('class' => array('text-full')),
     '#description' => 'The content that appears after clicking the header.  Using header tags here may break the accordion.',
+    '#format' => isset($items[$delta]['format']) ? $items[$delta]['format'] : filter_default_format(),
+    //'#format' => isset($items[$delta]['format']) ? filter_default_format() : filter_default_format(),
   );
   return $element;
+}
+
+/**
+ * Implements hook_field_presave().
+ */
+function accordion_tree_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  foreach ($items as $delta => $item) {
+  
+    // Fix the values from the rich text editor
+	  $item['format'] = $item['value']['format'];
+    $item['value'] = $item['value']['value'];
+    $items[$delta] = $item;
+    
+    // Remove any items where the header and value are empty - this is a HACK - it should do this automatically, shouldn't it?!
+    if(empty($item['header']) and empty($item['value'])) {
+      unset($items[$delta]);
+    }
+  }
 }
 
 
@@ -398,6 +413,7 @@ function _accordion_tree_field_submit($name, $entity, $form, &$form_state) {
     if (isset($items['add_more'])) {
       unset($items['add_more']);
     }
+   
     $weights = array();
     foreach ($items as $delta => $item) {
       $weights[] = $items[$delta]['_weight'];
