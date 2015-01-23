@@ -141,8 +141,8 @@ function accordion_tree_field_formatter_view($entity_type, $entity, $field, $ins
   foreach ($items as $delta => $item) {
     $outputbody = _text_sanitize($instance, $langcode, $item, 'value');
     //$outputbody = $item['value'];  // Temporarily override the text_sanitization until I figure out why it doesn't work properly!
-    //$outputheader = $item['header'];
-    $outputheader = _text_sanitize($instance, $langcode, $item, 'header');
+    $outputheader = $item['header'];
+    //$outputheader = _text_sanitize($instance, $langcode, $item, 'header');
     
     
     $element[$delta] = array(
@@ -196,15 +196,23 @@ function accordion_tree_field_formatter_view($entity_type, $entity, $field, $ins
 
 function theme_nested_accordion($vars) {
   $output = '';
-  $items = $vars['items'];
-  $attributes = $vars['attributes'];
-  
+
   drupal_add_css(drupal_get_path('module', 'accordion_tree') . '/accordion_tree.css');
   drupal_add_js(drupal_get_path('module', 'accordion_tree') . '/accordion_tree_display.js');
   drupal_add_js(drupal_get_path('module', 'accordion_tree') . '/jquery.nestedAccordion.js');
 
+  $output .= '<div id="' . drupal_html_id('accordion') . '">';
+  $output .= theme_nested_accordion_items($vars);
+  $output .= '</div>';
+  return $output;
+}
+
+function theme_nested_accordion_items($vars) {
+  $output = '';
+  $items = $vars['items'];
+  $attributes = $vars['attributes'];
   if (!empty($items)) {
-    $output .= '<ul' . drupal_attributes($attributes) . '>';
+    $output .= '<ul id="' . drupal_html_id('accordion') . '" ' . drupal_attributes($attributes) . '>';
     $num_items = count($items);
     $i = 0;
     foreach ($items as $item) {
@@ -228,7 +236,6 @@ function theme_nested_accordion($vars) {
       } else {
         $data = $item;
       }
-      
       $output .= '<li' . drupal_attributes($attributes) . '>';
       $output .= '  <h3>' . $header . '</h3>';
       $output .= '  <div class="accordion_body">';
@@ -246,9 +253,6 @@ function theme_nested_accordion($vars) {
   }
   return $output;
 }
-
-
-
 
 
 /**

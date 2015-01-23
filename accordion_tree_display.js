@@ -2,13 +2,13 @@
 
 Drupal.behaviors.createAccordion = {
   attach: function(context, settings) {
-  alert("hello");
-  $("ul", context).accordion({
-      container: true,
+  $("#accordion").accordion({
+      container: false,
       el: ".h", 
       head: "h3, h4", 
       next: "div", 
-      initShow : ""
+      initShow : "",
+      obj: 'ul',
   });
   }
 };
