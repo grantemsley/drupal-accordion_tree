@@ -232,6 +232,7 @@ function accordion_tree_field_widget_form(&$form, &$form_state, $field, $instanc
     '#size' => 80,
     '#maxlength' => 255,
     '#attributes' => array('class' => array('text-full')),
+    '#description' => 'Becomes the clickable header to expand this item',
   );
   
   $element['value'] = array(
@@ -240,6 +241,7 @@ function accordion_tree_field_widget_form(&$form, &$form_state, $field, $instanc
     '#default_value' => isset($items[$delta]['value']) ? $items[$delta]['value'] : NULL,
     '#rows' => $instance['widget']['settings']['rows'],
     '#attributes' => array('class' => array('text-full')),
+    '#description' => 'The content that appears after clicking the header.  Using header tags here may break the accordion.',
   );
   return $element;
 }
