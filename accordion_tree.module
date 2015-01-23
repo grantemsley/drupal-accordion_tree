@@ -240,9 +240,13 @@ function accordion_tree_field_widget_settings_form($field, $instance) {
 
 /**
  * Implements hook_field_widget_form().
+ * 
+ * This function creates the field elements on the edit page.
+ *
  */
 function accordion_tree_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $element['header'] = array(
+    '#title' => 'Item Header',
     '#type' => 'textfield',
     '#default_value' => isset($items[$delta]['header'])? $items[$delta]['header'] : NULL,
     '#size' => 80,
@@ -251,6 +255,7 @@ function accordion_tree_field_widget_form(&$form, &$form_state, $field, $instanc
   );
   
   $element['value'] = array(
+    '#title' => 'Item Body',
     '#type' => 'textarea',
     '#default_value' => isset($items[$delta]['value']) ? $items[$delta]['value'] : NULL,
     '#rows' => $instance['widget']['settings']['rows'],
