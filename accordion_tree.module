@@ -137,15 +137,20 @@ function accordion_tree_field_formatter_settings_summary($field, $instance, $vie
  * Implements hook_field_formatter_view().
  */
 function accordion_tree_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+firep($instance);
   $element = array();
   foreach ($items as $delta => $item) {
     $outputbody = _text_sanitize($instance, $langcode, $item, 'value');
-    $outputbody = $item['value'];  // Temporarily override the text_sanitization until I figure out why it doesn't work properly!
+    firep($item);
+    //$outputbody = $item['value'];  // Temporarily override the text_sanitization until I figure out why it doesn't work properly!
+    //$outputheader = $item['header'];
     $outputheader = _text_sanitize($instance, $langcode, $item, 'header');
+    
+    firep('<pre>' . $outputheader . '</pre>');
     
     $element[$delta] = array(
       '#header' => $outputheader,
-      '#markup' => $outputbody,
+      '#body' => $outputbody,
     );
   }
   
@@ -164,7 +169,8 @@ function accordion_tree_field_formatter_view($entity_type, $entity, $field, $ins
       $depths[$delta] = ++$depth;
     }
     $refs[$parent][] = array(
-      'data' => '<div class="field-value field-value-' . ($delta + 1) . '">' . '<h3>' . $item['#header'] . '</h3>'. $item['#markup'] . '</div>',
+      'header' => $item['#header'],
+      'body' => $item['#body'],
       'children' => array(),
       'class' => array('depth depth-' . $depth),
     );
@@ -173,7 +179,7 @@ function accordion_tree_field_formatter_view($entity_type, $entity, $field, $ins
   if ($tree) {
     $result = array(
       array(
-        '#markup' => theme('item_list', array(
+        '#markup' => theme('nested_accordion', array(
           'items' => $tree,
           'attributes' => array('class' => array('depth', 'depth-0')),
         )),
@@ -183,9 +189,68 @@ function accordion_tree_field_formatter_view($entity_type, $entity, $field, $ins
   else {
     $result = FALSE;
   }
-  firep($result);
   return $result;
 }
+
+
+/**
+ * Returns HTML for the accordion output
+ */
+
+function theme_nested_accordion($vars) {
+  firep($vars);
+  firep('<hr>');
+  $output = '';
+  $items = $vars['items'];
+  $attributes = $vars['attributes'];
+
+  if (!empty($items)) {
+    $output .= '<ul' . drupal_attributes($attributes) . '>';
+    $num_items = count($items);
+    $i = 0;
+    foreach ($items as $item) {
+      $attributes = array();
+      $children = array();
+      $header = '';
+      $body = '';
+      $i++;
+      if (is_array($item)) {
+        foreach ($item as $key => $value) {
+          if($key == 'header') {
+            $header = $value;
+          } elseif ($key == 'body') {
+            $body = $value;
+          } elseif ($key == 'children') {
+            firep("PREPARING RECURSION!");
+            $children = $value;
+          } else {
+            $attributes[$key] = $value;
+          }
+        }
+      } else {
+        $data = $item;
+      }
+      
+      $output .= '<li' . drupal_attributes($attributes) . '>';
+      $output .= '  <h3>' . $header . '</h3>';
+      $output .= '  <div class="accordion_body">';
+      $output .=      $body;
+      
+      if (count($children) > 0) {
+        // Render nested list.
+        $output .= theme_nested_accordion(array('items' => $children, 'attributes' => $attributes));
+      }
+      
+      $output .= '  </div>';
+      $output .= '</li>';
+    }
+    $output .= "</ul>";
+  }
+  return $output;
+}
+
+
+
 
 
 /**
@@ -385,8 +450,14 @@ function accordion_tree_theme() {
     'accordion_tree' => array(
       'render element' => 'element',
     ),
+    'nested_accordion' => array(
+      'render element' => 'element',
+    ),
   );
 }
+
+
+
 
 
 /**
