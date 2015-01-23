@@ -138,42 +138,22 @@ function accordion_tree_field_formatter_settings_summary($field, $instance, $vie
  */
 function accordion_tree_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
-  switch ($display['type']) {
-    case 'accordion_tree_default':
-    case 'accordion_tree_trimmed':
-      foreach ($items as $delta => $item) {
-        $output = _text_sanitize($instance, $langcode, $item, 'value');
-        if ($display['type'] == 'accordion_tree_trimmed') {
-          $output = text_summary($output, $instance['settings']['text_processing'] ? $item['format'] : NULL, $display['settings']['trim_length']);
-        }
-        $element[$delta] = array('#markup' => $output);
-      }
-      break;
-
-    case 'accordion_tree_summary_or_trimmed':
-      foreach ($items as $delta => $item) {
-        if (!empty($item['summary'])) {
-          $output = _text_sanitize($instance, $langcode, $item, 'summary');
-        }
-        else {
-          $output = _text_sanitize($instance, $langcode, $item, 'value');
-          $output = text_summary($output, $instance['settings']['text_processing'] ? $item['format'] : NULL, $display['settings']['trim_length']);
-        }
-        $element[$delta] = array('#markup' => $output);
-      }
-      break;
-
-    case 'accordion_tree_plain':
-      foreach ($items as $delta => $item) {
-        $element[$delta] = array('#markup' => strip_tags($item['value']));
-      }
-      break;
+    firep($items);
+  foreach ($items as $delta => $item) {
+    $outputbody = _text_sanitize($instance, $langcode, $item, 'value');
+    $outputheader = _text_sanitize($instance, $langcode, $item, 'header');
+    
+    $element[$delta] = array('#header' => $outputheader);
+    $element[$delta] = array('#markup' => $outputbody);
   }
+  
   $tree = array();
   $refs = array(0 => &$tree);
   $depth = 1;
   $depths = array(0 => $depth);
+  
   foreach ($element as $delta => $item) {
+
     $parent = $items[$delta]['parent'];
     if (isset($depths[$parent])) {
       $depth = $depths[$parent];
