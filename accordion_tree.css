@@ -24,9 +24,18 @@ div.field-type-accordion-tree ul.depth-0 {
 div.field-type-accordion-tree a.trigger {
   background: #e7e7e7 url("images/arrow-right.png") no-repeat center left;
   padding-left: 32px;
+  padding-right: 32px;
   display: block;
   border-color: #dadada;
   
+}
+
+div.field-type-accordion-tree a {
+}
+
+div.field-type-accordion-tree div.outer a {
+  /* The user provided content */
+  text-decoration: underline;
 }
 
 div.field-type-accordion-tree a.trigger.open {
