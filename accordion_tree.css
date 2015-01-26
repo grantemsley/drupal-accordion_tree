@@ -48,6 +48,8 @@ div.field-type-accordion-tree p {
   padding-right: 0em;
 }
 
-
+div.field-type-accordion-tree div.outer {
+  padding-bottom: 1em;
+}
 
 
