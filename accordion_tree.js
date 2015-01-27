@@ -20,4 +20,14 @@
     }
     return siblings;
   };
+
+  Drupal.behaviors.hideAccordionBody = {
+    attach: function(context, setting) {
+      $(".accordionitem-showhide").click(function(){
+        $(".text-format-wrapper").toggle();
+        $(".description").toggle();
+        $("label").toggle();
+      });
+    }
+  };
 })(jQuery);

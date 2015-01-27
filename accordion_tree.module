@@ -527,7 +527,8 @@ function theme_accordion_tree($vars) {
       'class' => array('draggable'),
     );
   }
-  $output = '<div class="form-item">' . theme('table', array(
+  $output = '<a class="accordionitem-showhide" href="#hide">Show/hide item bodies to rearrange</a>';
+  $output .= '<div class="form-item">' . theme('table', array(
     'header' => $header,
     'rows' => $rows,
     'attributes' => array('id' => $table_id),
