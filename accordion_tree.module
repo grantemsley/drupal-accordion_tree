@@ -93,7 +93,8 @@ function accordion_tree_field_load($entity_type, $entities, $field, $instances, 
  * Implements hook_field_is_empty().
  */
 function accordion_tree_field_is_empty($item, $field) {
-  return text_field_is_empty($item, NULL);
+
+  return empty($item['header']);
 }
 
 
@@ -140,10 +141,7 @@ function accordion_tree_field_formatter_view($entity_type, $entity, $field, $ins
   $element = array();
   foreach ($items as $delta => $item) {
     $outputbody = _text_sanitize($instance, $langcode, $item, 'value');
-    //$outputbody = $item['value'];  // Temporarily override the text_sanitization until I figure out why it doesn't work properly!
     $outputheader = $item['header'];
-    //$outputheader = _text_sanitize($instance, $langcode, $item, 'header');
-    
     
     $element[$delta] = array(
       '#header' => $outputheader,
@@ -301,7 +299,7 @@ function accordion_tree_field_widget_form(&$form, &$form_state, $field, $instanc
     '#size' => 80,
     '#maxlength' => 255,
     '#attributes' => array('class' => array('text-full')),
-    '#description' => 'Becomes the clickable header to expand this item',
+    '#description' => 'Header to expand item.  Set to blank to remove entire item.',
     '#prefix' => '<div class="container-inline">',
     '#suffix' => '</div>',
   );
@@ -316,7 +314,6 @@ function accordion_tree_field_widget_form(&$form, &$form_state, $field, $instanc
     '#description' => 'The content that appears after clicking the header.  Using header tags here may break the accordion.',
     '#format' => isset($items[$delta]['format']) ? $items[$delta]['format'] : filter_default_format(),
     '#post_render' => array('accordion_tree_showhide_element'),
-    //'#format' => isset($items[$delta]['format']) ? filter_default_format() : filter_default_format(),
   );
   return $element;
 }
@@ -332,8 +329,8 @@ function accordion_tree_field_presave($entity_type, $entity, $field, $instance, 
     $item['value'] = $item['value']['value'];
     $items[$delta] = $item;
     
-    // Remove any items where the header and value are empty - this is a HACK - it should do this automatically, shouldn't it?!
-    if(empty($item['header']) and empty($item['value'])) {
+    // Remove any items where the header is empty - for some reason hook_field_is_empty is not removing the empty items.
+    if(empty($item['header'])) {
       unset($items[$delta]);
     }
   }
