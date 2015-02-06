@@ -302,6 +302,8 @@ function accordion_tree_field_widget_form(&$form, &$form_state, $field, $instanc
     '#maxlength' => 255,
     '#attributes' => array('class' => array('text-full')),
     '#description' => 'Becomes the clickable header to expand this item',
+    '#prefix' => '<div class="container-inline">',
+    '#suffix' => '</div>',
   );
   
   $element['value'] = array(
@@ -313,6 +315,7 @@ function accordion_tree_field_widget_form(&$form, &$form_state, $field, $instanc
     '#attributes' => array('class' => array('text-full')),
     '#description' => 'The content that appears after clicking the header.  Using header tags here may break the accordion.',
     '#format' => isset($items[$delta]['format']) ? $items[$delta]['format'] : filter_default_format(),
+    '#post_render' => array('accordion_tree_showhide_element'),
     //'#format' => isset($items[$delta]['format']) ? filter_default_format() : filter_default_format(),
   );
   return $element;
@@ -480,8 +483,26 @@ function accordion_tree_theme() {
   );
 }
 
-
-
+/**
+ * post_render callback used by the value form element to make it hideable
+ */
+function accordion_tree_showhide_element($markup, $element) {
+  // For formatted text, this will actually get called twice, once for #type textarea and once for #type text_format
+  // We want to hide the outer div, which is the text_format
+  if($element['#type'] == 'text_format') {
+    $newid = drupal_html_id('accordion-tree-item-body-hider');
+    
+    $newmarkup = '<a href="#" class="accordionitem-showhide">Show body</a>';
+    $newmarkup .= '<div id="' . $newid . '" style="display:none;">';
+    $newmarkup .= $markup;
+    $newmarkup .= '</div>';
+    
+    return $newmarkup;
+  }
+  else {
+    return $markup;
+  }
+}
 
 
 /**
@@ -527,8 +548,7 @@ function theme_accordion_tree($vars) {
       'class' => array('draggable'),
     );
   }
-  $output = '<a class="accordionitem-showhide" href="#hide">Show/hide item bodies to rearrange</a>';
-  $output .= '<div class="form-item">' . theme('table', array(
+  $output = '<div class="form-item">' . theme('table', array(
     'header' => $header,
     'rows' => $rows,
     'attributes' => array('id' => $table_id),

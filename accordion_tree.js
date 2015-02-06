@@ -21,12 +21,17 @@
     return siblings;
   };
 
-  Drupal.behaviors.hideAccordionBody = {
+  Drupal.behaviors.accordion_tree_hide_body = {
+    
     attach: function(context, setting) {
-      $(".accordionitem-showhide").click(function(){
-        $(".text-format-wrapper").toggle();
-        $(".description").toggle();
-        $("label").toggle();
+      $('.accordionitem-showhide').once('accordion-showhide', function() {
+        $(".accordionitem-showhide").click(function(){
+          event.preventDefault();
+          //alert("doing stuff");
+          $(this).next('div').toggle();
+          var txt = $(this).next('div').is(':visible') ? 'Hide body' : 'Show body';
+          $(this).text(txt);
+        });
       });
     }
   };
