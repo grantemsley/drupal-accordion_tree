@@ -24,11 +24,16 @@
   Drupal.behaviors.accordion_tree_hide_body = {
     
     attach: function(context, setting) {
-      $('.accordionitem-showhide').once('accordion-showhide', function() {
-        $(".accordionitem-showhide").click(function(){
+      $('.accordionitem-showhide', context).once('accordion-showhide', function() {
+        // Get the ID of this item, and attach the click handler to the ID
+        // If you use the CLASS instead, handler gets attached to each item once for each item - so the handler triggers multiple times
+        var id = "#" + this.id;
+        $(id).click(function(){
+          // Prevent the normal link behavior from firing
           event.preventDefault();
-          //alert("doing stuff");
+          // Hide the div directly after this item
           $(this).next('div').toggle();
+          // Change the text to match the state of the div
           var txt = $(this).next('div').is(':visible') ? 'Hide body' : 'Show body';
           $(this).text(txt);
         });

@@ -492,8 +492,8 @@ function accordion_tree_showhide_element($markup, $element) {
   if($element['#type'] == 'text_format') {
     $newid = drupal_html_id('accordion-tree-item-body-hider');
     
-    $newmarkup = '<a href="#" class="accordionitem-showhide">Show body</a>';
-    $newmarkup .= '<div id="' . $newid . '" style="display:none;">';
+    $newmarkup = '<a id="' . $newid . '" href="#" class="accordionitem-showhide">Show body</a>';
+    $newmarkup .= '<div class="accordion-tree-item-body" style="display:none;">';
     $newmarkup .= $markup;
     $newmarkup .= '</div>';
     
