@@ -1,0 +1,45 @@
+From 71b7df1428ecb94979c114057449b5e21394de4f Mon Sep 17 00:00:00 2001
+From: Grant Emsley <grant@emsley.ca>
+Date: Wed, 25 Feb 2015 13:48:35 -0500
+Subject: [PATCH] Fixes block caching for accordion trees.
+
+see http://www.montanaprogrammer.com/drupal/drupal-block-add-js-css/
+
+For caching to work, need to add the css and js files through #attached, not drupal_add_js
+---
+ .../sites/all/modules/accordion_tree/accordion_tree.module | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/website/sites/all/modules/accordion_tree/accordion_tree.module b/website/sites/all/modules/accordion_tree/accordion_tree.module
+index a970189..b6fa10c 100644
+--- a/website/sites/all/modules/accordion_tree/accordion_tree.module
++++ b/website/sites/all/modules/accordion_tree/accordion_tree.module
+@@ -178,6 +178,15 @@ function accordion_tree_field_formatter_view($entity_type, $entity, $field, $ins
+           'items' => $tree,
+           'attributes' => array('class' => array('depth', 'depth-0')),
+         )),
++        '#attached' => array(
++          'css' => array(
++            drupal_get_path('module', 'accordion_tree') . '/accordion_tree.css',
++          ),
++          'js' => array(
++            drupal_get_path('module', 'accordion_tree') . '/accordion_tree_display.js',
++            drupal_get_path('module', 'accordion_tree') . '/jquery.nestedAccordion.js',
++          ),
++        ),
+       ),
+     );
+   }
+@@ -194,11 +203,6 @@ function accordion_tree_field_formatter_view($entity_type, $entity, $field, $ins
+
+ function theme_nested_accordion($vars) {
+   $output = '';
+-
+-  drupal_add_css(drupal_get_path('module', 'accordion_tree') . '/accordion_tree.css');
+-  drupal_add_js(drupal_get_path('module', 'accordion_tree') . '/accordion_tree_display.js');
+-  drupal_add_js(drupal_get_path('module', 'accordion_tree') . '/jquery.nestedAccordion.js');
+-
+   $output .= '<div id="' . drupal_html_id('accordion') . '">';
+   $output .= theme_nested_accordion_items($vars);
+   $output .= '</div>';
+--
